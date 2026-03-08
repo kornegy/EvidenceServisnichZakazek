@@ -9,6 +9,8 @@ public class Program
         // Add services to the container.
         builder.Services.AddControllersWithViews();
 
+        builder.Services.AddScoped<EvidenceServisnichZakazek.Repositories.IUserRepository, EvidenceServisnichZakazek.Repositories.UserRepository>();
+        
         var app = builder.Build();
         
         string? connectionString = app.Configuration.GetConnectionString("DefaultConnection");
