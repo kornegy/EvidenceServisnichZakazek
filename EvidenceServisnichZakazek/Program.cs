@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+
 namespace EvidenceServisnichZakazek;
+
 
 public class Program
 {
@@ -9,11 +12,22 @@ public class Program
         // Add services to the container.
         builder.Services.AddControllersWithViews();
 
+        builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.LoginPath = "/Account/Register";
+                options.ExpireTimeSpan = TimeSpan.FromDays(7); // save for 7 days
+
+            });
+
         builder.Services.AddScoped<EvidenceServisnichZakazek.Repositories.IUserRepository, EvidenceServisnichZakazek.Repositories.UserRepository>();
         
         var app = builder.Build();
         
         string? connectionString = app.Configuration.GetConnectionString("DefaultConnection");
+        
+        Console.WriteLine($"\n====== ВНИМАНИЕ! БАЗА ТУТ: {connectionString} ======\n");
+        
         EvidenceServisnichZakazek.Data.DatabaseInitializer.Initialize(connectionString);
 
         // Configure the HTTP request pipeline.
@@ -27,6 +41,7 @@ public class Program
         app.UseHttpsRedirection();
         app.UseRouting();
 
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapStaticAssets();
