@@ -26,8 +26,6 @@ public class Program
         
         string? connectionString = app.Configuration.GetConnectionString("DefaultConnection");
         
-        Console.WriteLine($"\n====== ВНИМАНИЕ! БАЗА ТУТ: {connectionString} ======\n");
-        
         EvidenceServisnichZakazek.Data.DatabaseInitializer.Initialize(connectionString);
 
         // Configure the HTTP request pipeline.
