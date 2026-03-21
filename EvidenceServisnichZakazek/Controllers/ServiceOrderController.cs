@@ -15,15 +15,13 @@ public class ServiceOrderController : Controller
     {
         _orderRepository = orderRepository;
     }
-
-    // Отдает пустую форму клиенту
+    
     [HttpGet]
     public IActionResult Create()
     {
         return View();
     }
 
-    // Ловит заполненную форму после нажатия кнопки "Отправить"
     [HttpPost]
     public async Task<IActionResult> Create(CreateServiceOrderViewModel model)
     {
@@ -32,26 +30,24 @@ public class ServiceOrderController : Controller
             return View(model);
         }
 
-        // Достаем ID текущего клиента прямо из его Cookies!
+        // zjistime id aktualniho clienta
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null) return Unauthorized(); // На всякий случай
+        if (userIdClaim == null) return Unauthorized(); // Pro pripad
             
         int currentUserId = int.Parse(userIdClaim.Value);
 
-        // Собираем заказ для базы данных
+        // sestavujeme objednavku pro db
         var newOrder = new ServiceOrders
         {
             CustomerId = currentUserId,
-            // Склеиваем категорию и модель в одну строку для базы (например: "Смартфон - iPhone 13")
             PhoneType = $"{model.DeviceCategory} - {model.DeviceModel}", 
             IssueDescription = model.IssueDescription,
             CreatedAt = DateTime.Now
         };
 
-        // Сохраняем заказ в БД (твой репозиторий сам запишет и заказ, и историю!)
+        // commit db
         await _orderRepository.CreateOrderAsync(newOrder);
-
-        // Пока перекидываем на главную (потом заменим на страницу "Мои заказы")
+        
         return RedirectToAction("Index", "Home"); 
     }
 

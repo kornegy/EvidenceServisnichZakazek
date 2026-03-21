@@ -1,0 +1,48 @@
+﻿@model EvidenceServisnichZakazek.Models.CreateServiceOrderViewModel
+
+@{
+    ViewData["Title"] = "Create request";
+}
+
+<div class = "container mt-4">
+    <h2>Submitting a new repair request 🛠️</h2>
+    <p class="text-muted">Fill out the form below, and our technicians will take care of your device.</p>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="Create" method="post">
+                
+                <div class="form-group mb-3">
+                    <label asp-for="DeviceCategory" class="control-label fw-bold">Device category</label>
+                    <select asp-for="DeviceCategory" class="form-select">
+                        <option value="">-- Choose from the list --</option>
+                        <option value="Smartphone">Smartphone</option>
+                        <option value="Tablet">Tablet</option>
+                        <option value="Laptop">Laptop</option>
+                        <option value="Smart watch">Smart watch</option>
+                        <option value="Others">Others</option>
+                    </select>
+                    <span asp-validation-for="DeviceCategory" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="DeviceModel" class="control-label fw-bold">Device model</label>
+                    <input asp-for="DeviceModel" class="form-control" placeholder="Example: Samsung Galaxy S23" />
+                    <span asp-validation-for="DeviceModel" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label asp-for="IssueDescription" class="control-label fw-bold">Detailed description of the problem</label>
+                    <textarea asp-for="IssueDescription" class="form-control" rows="4" placeholder="Please describe exactly what broke and how it happened..."></textarea>
+                    <span asp-validation-for="IssueDescription" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg">Send request</button>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-lg ms-2">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

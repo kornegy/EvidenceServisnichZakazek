@@ -25,11 +25,11 @@ public class ServiceOrderRepository : IServiceOrderRepository
         
         int newOrderId = await db.ExecuteScalarAsync<int>(insertOrderSql, order);
 
-        string insertHistorySql = @"INSERT INTO OrderHistories (OrderId, Status, ChangedAt)
-                VALUES (@OrderId, 1, @ChangedAt);";
+        string insertHistorySql = @"INSERT INTO OrderHistories (OrderId, Status, ChangedAt, DurationMinutes)
+                VALUES (@OrderId, 1, @ChangedAt, 0);";
         
         await db.ExecuteAsync(insertHistorySql, new 
-        { 
+        {
             OrderId = newOrderId, 
             ChangedAt = order.CreatedAt 
         });
