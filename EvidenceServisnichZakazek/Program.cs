@@ -1,3 +1,4 @@
+using EvidenceServisnichZakazek.Repositories;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace EvidenceServisnichZakazek;
@@ -21,6 +22,7 @@ public class Program
             });
 
         builder.Services.AddScoped<EvidenceServisnichZakazek.Repositories.IUserRepository, EvidenceServisnichZakazek.Repositories.UserRepository>();
+        builder.Services.AddScoped<IServiceOrderRepository, ServiceOrderRepository>();
         
         var app = builder.Build();
         
