@@ -1,0 +1,47 @@
+﻿@model IEnumerable<EvidenceServisnichZakazek.Models.ServiceOrders>
+
+@{
+    ViewData["Title"] = "My orders";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>My repair requests 📱</h2>
+        <a asp-action="Create" class="btn btn-primary">+ New request</a>
+    </div>
+
+    <table class="table table-hover table-bordered shadow-sm">
+        <thead class="table-dark">
+        <tr>
+            <th>Number</th>
+            <th>Device</th>
+            <th>Issue description</th>
+            <th>Due date</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="5" class="text-center text-muted">You don't have any active requests yet.</td>
+            </tr>
+        }
+        else
+        {
+            foreach (var order in Model)
+            {
+                <tr>
+                    <td><strong>#@order.id</strong></td>
+                    <td>@order.PhoneType</td>
+                    <td>@order.IssueDescription</td>
+                    <td>@order.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>
+                        <span class="badge bg-info text-dark">Статус: @order.CurrStatus</span>
+                    </td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+</div>

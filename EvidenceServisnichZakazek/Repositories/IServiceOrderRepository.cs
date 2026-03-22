@@ -5,4 +5,5 @@ namespace EvidenceServisnichZakazek.Repositories;
 public interface IServiceOrderRepository
 {
     Task<int> CreateOrderAsync(ServiceOrders order);
+    Task<IEnumerable<ServiceOrders>> GetOrdersByUserIdAsync(int userId);
 }

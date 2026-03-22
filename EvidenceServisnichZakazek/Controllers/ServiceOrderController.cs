@@ -22,6 +22,20 @@ public class ServiceOrderController : Controller
         return View();
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        
+        if(userIdClaim == null) return Unauthorized();
+
+        int currentUserId = int.Parse(userIdClaim.Value);
+        
+        var orders = await _orderRepository.GetOrdersByUserIdAsync(currentUserId);
+        
+        return View(orders);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create(CreateServiceOrderViewModel model)
     {
@@ -48,7 +62,7 @@ public class ServiceOrderController : Controller
         // commit db
         await _orderRepository.CreateOrderAsync(newOrder);
         
-        return RedirectToAction("Index", "Home"); 
+        return RedirectToAction("Index"); 
     }
 
 }

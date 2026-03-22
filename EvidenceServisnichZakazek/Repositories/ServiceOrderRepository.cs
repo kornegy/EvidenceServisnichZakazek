@@ -36,4 +36,13 @@ public class ServiceOrderRepository : IServiceOrderRepository
 
         return newOrderId;
     }
+
+    public async Task<IEnumerable<ServiceOrders>> GetOrdersByUserIdAsync(int userId)
+    {
+        using IDbConnection db = new SqliteConnection(_connectionString);
+        
+        string sql = @"SELECT * FROM ServiceOrders WHERE CustomerId = @UserId ORDER BY CreatedAt DESC";
+
+        return await db.QueryAsync<ServiceOrders>(sql, new { UserId = userId });
+    }
 }
