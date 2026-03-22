@@ -7,6 +7,14 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>My repair requests 📱</h2>
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success mt-2">@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger mt-2">@TempData["ErrorMessage"]</div>
+        }
         <a asp-action="Create" class="btn btn-primary">+ New request</a>
     </div>
 
@@ -18,6 +26,7 @@
             <th>Issue description</th>
             <th>Due date</th>
             <th>Status</th>
+            <th>Actions</th>
         </tr>
         </thead>
         <tbody>
@@ -37,7 +46,21 @@
                     <td>@order.IssueDescription</td>
                     <td>@order.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
                     <td>
-                        <span class="badge bg-info text-dark">Статус: @order.CurrStatus</span>
+                        <span class="badge bg-info text-dark">Status: @order.CurrStatus</span>
+                    </td>
+                    
+                    <td>
+                        @if (order.CurrStatus == OrderStatus.Prijato)
+                        {
+                            <form asp-action="Delete" asp-route-id="@order.id" method="post" 
+                                  onsubmit="return confirm('Are you sure you want to cancel this request?');">
+                                <button type="submit" class="btn btn-sm btn-danger">🗑️ Cancel</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="text-muted small">Cancellation is not possible</span>
+                        }
                     </td>
                 </tr>
             }

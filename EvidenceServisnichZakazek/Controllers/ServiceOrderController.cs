@@ -65,4 +65,21 @@ public class ServiceOrderController : Controller
         return RedirectToAction("Index"); 
     }
 
+    [HttpPost]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+        int currentUserId = int.Parse(userIdClaim.Value);
+
+        bool success = await _orderRepository.DeleteOrderAsync(id, currentUserId);
+
+        if (success)
+            TempData["SuccesMessage"] = "Orders has been successfully removed";
+        else
+            TempData["ErrorMessage"] = "Error! The order is already being processed or does not exist";
+        
+        return RedirectToAction("Index");
+    }
+
 }

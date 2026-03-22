@@ -45,4 +45,23 @@ public class ServiceOrderRepository : IServiceOrderRepository
 
         return await db.QueryAsync<ServiceOrders>(sql, new { UserId = userId });
     }
+
+    public async Task<bool> DeleteOrderAsync(int orderId, int customerId)
+    {
+        using IDbConnection db = new SqliteConnection(_connectionString);
+
+        string checksql = "SELECT Id FROM ServiceOrders Where Id = @OrderId AND @CustomerId = CustomerId AND CurrStatus = 1";
+
+        var id = await db.ExecuteScalarAsync<int?>(checksql, new { OrderId = orderId, CustomerId = customerId });
+
+        if (id == null)
+            return false;
+
+        string deletesql = @"DELETE FROM OrderHistories WHERE OrderId = @OrderId;
+                             DELETE FROM ServiceOrders WHERE Id = @OrderId;
+        ";
+        
+        await db.ExecuteAsync(deletesql, new { OrderId = orderId});
+        return true;
+    }
 }

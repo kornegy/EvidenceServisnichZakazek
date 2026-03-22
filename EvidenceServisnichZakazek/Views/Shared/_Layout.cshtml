@@ -21,11 +21,21 @@
             <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                 <ul class="navbar-nav flex-grow-1">
                     <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        <a class="nav-link text-dark fw-bold" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        <a class="nav-link text-dark fw-bold" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                     </li>
+                        
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark fw-bold" asp-controller="ServiceOrder" asp-action="Create">Send for repair</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark fw-bold" asp-controller="ServiceOrder" asp-action="Index">My orders</a>
+                        </li>
+                    }
                 </ul>
                 
                 <ul class="navbar-nav">
