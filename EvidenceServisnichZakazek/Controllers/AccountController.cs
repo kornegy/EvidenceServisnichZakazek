@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using EvidenceServisnichZakazek.Repositories;
 
 namespace EvidenceServisnichZakazek.Controllers;
 using Microsoft.AspNetCore.Mvc;
@@ -21,28 +23,28 @@ public class AccountController : Controller
         return View();
     }
     [HttpPost]
-    public async Task<IActionResult> Register(RegisterViewModel model)
+    public async Task<IActionResult> Register(RegisterViewModel registerModel)
     {
         if (!ModelState.IsValid)
         {
-            return View(model);
+            return View(registerModel);
         }
         
-        var existingUser = await _userRepository.GetUserByEmailAsync(model.Email);
+        var existingUser = await _userRepository.GetUserByEmailAsync(registerModel.Email);
         if (existingUser != null)
         {
-            ModelState.AddModelError("Email| ", "Email already exists");
-            return View(model);
+            ModelState.AddModelError("Email", "Email already exists");
+            return View(registerModel);
         }
         
         //password hashing proccess
-        string hashedPassword = BCrypt.HashPassword(model.Password);
+        string hashedPassword = BCrypt.HashPassword(registerModel.Password);
 
         var newUser = new Users
         {
-            Email = model.Email,
-            FullName = model.FullName,
-            PhoneNumber = model.PhoneNumber,
+            Email = registerModel.Email,
+            FullName = registerModel.FullName,
+            PhoneNumber = registerModel.PhoneNumber,
             PasswordHash = hashedPassword,
         };
         
@@ -108,5 +110,38 @@ public class AccountController : Controller
         await HttpContext.SignOutAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
         return RedirectToAction("Index", "Home");
     }
+
+    [HttpGet]
+    public async Task<IActionResult> Profile()
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null) return RedirectToAction("Login");
+        
+        int currentIdUser = int.Parse(userIdClaim.Value);
+        
+        var currentUser = await _userRepository.GetUserByIdAsync(currentIdUser);
+        return View(currentUser);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> UpdateProfile(string newFullName, string newPhoneNumber)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+        int currentUserId = int.Parse(userIdClaim.Value);
+
+        bool success = await _userRepository.UpdateUserProfileAsync(currentUserId, newFullName);
+
+        if (success == true) //pousiti AJAX
+        {
+            return Json(new { success = true, message = "Changes has been successfully updated" });
+        }
+        else
+        {
+            return Json(new { success = false, message = "Error while updating" });
+        }
+    }
+    
     
 }

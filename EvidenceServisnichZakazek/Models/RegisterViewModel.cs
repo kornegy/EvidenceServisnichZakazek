@@ -11,6 +11,7 @@ public class RegisterViewModel
     public string? FullName { get; set; }
     
     [Required(ErrorMessage = "PhoneNumber is required")]
+    [RegularExpression(@"^\+?[0-9]{9,15}$", ErrorMessage = "Wrong number format! Example (+420123456789)")]
     public string? PhoneNumber { get; set; }
     
     [Required(ErrorMessage = "Password is required")]

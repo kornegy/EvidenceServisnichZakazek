@@ -14,6 +14,12 @@ public class UserRepository : IUserRepository
         _connectionString = configuration.GetConnectionString("DefaultConnection");
     }
 
+    public async Task<Users?> GetUserByIdAsync(int id)
+    {
+        using IDbConnection db = new SqliteConnection(_connectionString);
+        return await db.QueryFirstAsync<Users>($"SELECT * FROM Users WHERE Id = {id}", new { id });
+    }
+
     public async Task<int> AddUserAsync(Users users) // pridani noveho uzivatele v DB
     {
         using IDbConnection db = new SqliteConnection(_connectionString);
@@ -38,5 +44,14 @@ public class UserRepository : IUserRepository
             ";
         
         return await db.QuerySingleOrDefaultAsync<Users>(sql, new { Email = email }); //vrati null, jest-li email neexistuje
+    }
+
+    public async Task<bool> UpdateUserProfileAsync(int userId, string newFullName)
+    {
+        using IDbConnection db = new SqliteConnection(_connectionString);
+
+        string updatesql = "UPDATE Users SET FullName = @newFullName Where Id = @userId";
+
+        return await db.ExecuteAsync(updatesql, new { newFullName = newFullName, userId = userId }) > 0;
     }
 }
