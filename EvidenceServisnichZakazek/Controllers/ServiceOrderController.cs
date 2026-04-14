@@ -23,15 +23,18 @@ public class ServiceOrderController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string searchQuery, int? statusFilter, string dateFrom)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        
-        if(userIdClaim == null) return Unauthorized();
+        if(userIdClaim == null) return RedirectToAction("Login", "Account");
 
         int currentUserId = int.Parse(userIdClaim.Value);
         
-        var orders = await _orderRepository.GetOrdersByUserIdAsync(currentUserId);
+        ViewBag.SearchQuery = searchQuery;
+        ViewBag.StatusFilter = statusFilter;
+        ViewBag.DateFrom = dateFrom;
+        
+        var orders = await _orderRepository.GetUserOrdersFilteredAsync(currentUserId,  searchQuery, statusFilter, dateFrom);
         
         return View(orders);
     }
@@ -81,5 +84,4 @@ public class ServiceOrderController : Controller
         
         return RedirectToAction("Index");
     }
-
 }
