@@ -1,0 +1,7 @@
+﻿### Проверка без токена
+GET https://localhost:7184/api/users/secret-data
+
+{
+  "email": "test4@gmail.com",
+  "password": "123456!"
+}
