@@ -98,6 +98,14 @@ public class ServiceOrderRepository : IServiceOrderRepository
         sql.Append(" ORDER BY CreatedAt DESC");
 
         return await db.QueryAsync<ServiceOrders>(sql.ToString(), parameters);
+    }
 
+    public async Task<IEnumerable<ServiceOrders>> GetAllOrdersAsync()
+    {
+        using IDbConnection db = new SqliteConnection(_connectionString);
+
+        string sql = "Select * From ServiceOrders";
+        
+        return await db.QueryAsync<ServiceOrders>(sql);
     }
 }

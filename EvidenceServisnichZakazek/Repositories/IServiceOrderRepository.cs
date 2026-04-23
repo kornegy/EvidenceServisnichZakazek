@@ -9,4 +9,6 @@ public interface IServiceOrderRepository
     Task<bool> DeleteOrderAsync(int orderId, int customerId);
     
     Task<IEnumerable<ServiceOrders>> GetUserOrdersFilteredAsync(int userId, string searchQuery, int? statusFilter, string dateFrom);
+
+    Task<IEnumerable<ServiceOrders>> GetAllOrdersAsync();
 }
