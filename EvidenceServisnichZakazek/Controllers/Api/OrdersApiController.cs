@@ -38,4 +38,24 @@ public class OrdersApiController : Controller
         
         return Ok(new { message = "Order has been successfully updated!" });
     }
+
+    [HttpDelete("admin/{id}")]
+    public async Task<IActionResult> DeleteOrder(int id)
+    {
+        bool isDeleted = await _orderRepository.DeleteOrdersAdminAsync(id);
+
+        if (isDeleted)
+        {
+            return Ok();
+        }
+        
+        return NotFound("Order has not been found!");
+    }
+    
+    [HttpGet("admin/stats")]
+    public async Task<IActionResult> GetAppStatistics()
+    {
+        var stats = await _orderRepository.GetStatisticsAsync();
+        return Ok(stats);
+    }
 }

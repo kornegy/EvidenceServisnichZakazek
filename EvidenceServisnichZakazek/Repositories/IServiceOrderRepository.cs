@@ -12,4 +12,8 @@ public interface IServiceOrderRepository
 
     Task<IEnumerable<ServiceOrders>> GetAllOrdersAsync();
     Task UpdateOrderAsync(ServiceOrders order);
+    
+    Task<bool> DeleteOrdersAdminAsync(int orderId);
+    
+    Task<StatisticsDTO.AppStatisticsDto> GetStatisticsAsync();
 }

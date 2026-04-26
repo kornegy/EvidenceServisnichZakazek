@@ -111,55 +111,95 @@ public class ServiceOrderRepository : IServiceOrderRepository
     }
 
     public async Task UpdateOrderAsync(ServiceOrders order)
-{
-    using IDbConnection db = new SqliteConnection(_connectionString);
-    
-    var currentData = await db.QueryFirstOrDefaultAsync<dynamic>(
-        "SELECT CurrStatus, CreatedAt FROM ServiceOrders WHERE Id = @Id", 
-        new { Id = order.Id });
-
-    if (currentData == null) return;
-    
-    int oldStatus = Convert.ToInt32(currentData.CurrStatus);
-    
-    string sql = @"UPDATE ServiceOrders 
-                   SET PhoneType = @PhoneType, 
-                       IssueDescription = @IssueDescription,
-                       Price = @Price,
-                       CurrStatus = @CurrStatus,
-                       TechniciansId = @TechniciansId 
-                   WHERE Id = @Id";
-    
-    await db.ExecuteAsync(sql, order);
-    
-    if (oldStatus != order.CurrStatus)
     {
-        string lastChangeStr = await db.QueryFirstOrDefaultAsync<string>(
-            "SELECT ChangedAt FROM OrderHistories WHERE OrderId = @OrderId ORDER BY Id DESC LIMIT 1", 
-            new { OrderId = order.Id });
+        using IDbConnection db = new SqliteConnection(_connectionString);
+        
+        var currentData = await db.QueryFirstOrDefaultAsync<dynamic>(
+            "SELECT CurrStatus, CreatedAt FROM ServiceOrders WHERE Id = @Id", 
+            new { Id = order.Id });
 
-        DateTime lastChange;
-
-        if (!string.IsNullOrEmpty(lastChangeStr))
+        if (currentData == null) return;
+        
+        int oldStatus = Convert.ToInt32(currentData.CurrStatus);
+        
+        if (order.TechniciansId == 0)
         {
-            lastChange = DateTime.Parse(lastChangeStr);
-        }
-        else
-        {
-            lastChange = DateTime.Parse((string)currentData.CreatedAt);
+            order.TechniciansId = null;
         }
         
-        int durationMinutes = (int)(DateTime.Now - lastChange).TotalMinutes;
+        string sql = @"UPDATE ServiceOrders 
+                       SET PhoneType = @PhoneType, 
+                           IssueDescription = @IssueDescription,
+                           Price = @Price,
+                           CurrStatus = @CurrStatus,
+                           TechniciansId = @TechniciansId 
+                       WHERE Id = @Id";
         
-        string sqlHistory = @"INSERT INTO OrderHistories (OrderId, Status, ChangedAt, DurationMinutes) VALUES (@OrderId, @Status, @ChangedAt, @DurationMinutes)";
-
-        await db.ExecuteAsync(sqlHistory, new
+        await db.ExecuteAsync(sql, order);
+        
+        if (oldStatus != order.CurrStatus)
         {
-            OrderId = order.Id,
-            Status = order.CurrStatus,
-            ChangedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-            DurationMinutes = durationMinutes
-        });
+            string lastChangeStr = await db.QueryFirstOrDefaultAsync<string>(
+                "SELECT ChangedAt FROM OrderHistories WHERE OrderId = @OrderId ORDER BY Id DESC LIMIT 1", 
+                new { OrderId = order.Id });
+
+            DateTime lastChange;
+
+            if (!string.IsNullOrEmpty(lastChangeStr))
+            {
+                lastChange = DateTime.Parse(lastChangeStr);
+            }
+            else
+            {
+                lastChange = DateTime.Parse((string)currentData.CreatedAt);
+            }
+            
+            int durationMinutes = (int)(DateTime.Now - lastChange).TotalMinutes;
+            
+            string sqlHistory = @"INSERT INTO OrderHistories (OrderId, Status, ChangedAt, DurationMinutes) VALUES (@OrderId, @Status, @ChangedAt, @DurationMinutes)";
+
+            await db.ExecuteAsync(sqlHistory, new
+            {
+                OrderId = order.Id,
+                Status = order.CurrStatus,
+                ChangedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                DurationMinutes = durationMinutes
+            });
+        }
     }
-}
+    
+    public async Task<bool> DeleteOrdersAdminAsync(int orderId)
+    {
+        using IDbConnection db = new SqliteConnection(_connectionString);
+
+        string deleteHistorySql = "DELETE FROM OrderHistories WHERE OrderId = @Id";
+        await db.ExecuteAsync(deleteHistorySql, new { Id = orderId });
+        
+        string deleteOrderSql = "DELETE FROM ServiceOrders WHERE Id = @Id";
+        int rowsAffected = await db.ExecuteAsync(deleteOrderSql, new { Id = orderId });
+        
+        
+        return rowsAffected > 0;
+    }
+    
+    public async Task<StatisticsDTO.AppStatisticsDto> GetStatisticsAsync()
+    {
+        using IDbConnection db = new SqliteConnection(_connectionString);
+        var stats = new StatisticsDTO.AppStatisticsDto();
+
+        // 1. Считаем общее количество заказов
+        stats.TotalOrders = await db.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM ServiceOrders");
+        
+        string sqlStats = @"
+        SELECT Status, 
+               COUNT(*) as TimesVisited, 
+               AVG(DurationMinutes) as AvgMinutes 
+        FROM OrderHistories 
+        GROUP BY Status";
+
+        var statusData = await db.QueryAsync<StatisticsDTO.StatusStatDto>(sqlStats);
+        stats.StatusStats = statusData.ToList();
+
+        return stats;
+    }
 }
