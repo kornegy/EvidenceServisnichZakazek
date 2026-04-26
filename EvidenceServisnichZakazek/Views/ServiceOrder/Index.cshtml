@@ -71,7 +71,7 @@
             foreach (var order in Model)
             {
                 <tr>
-                    <td><strong>#@order.id</strong></td>
+                    <td><strong>#@order.Id</strong></td>
                     <td>@order.PhoneType</td>
                     <td>@order.IssueDescription</td>
                     <td>@order.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
@@ -80,9 +80,9 @@
                     </td>
                     
                     <td>
-                        @if (order.CurrStatus == OrderStatus.Prijato)
+                        @if (order.CurrStatus == 1)
                         {
-                            <form asp-action="Delete" asp-route-id="@order.id" method="post" 
+                            <form asp-action="Delete" asp-route-id="@order.Id" method="post" 
                                   onsubmit="return confirm('Are you sure you want to cancel this request?');">
                                 <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
                             </form>

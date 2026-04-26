@@ -16,7 +16,7 @@ public class Program
         // Add services to the container.
         builder.Services.AddControllersWithViews();
         
-        var jwtKey = builder.Configuration["JwtKey"];
+        var jwtKey = builder.Configuration["Jwt:Key"];
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>

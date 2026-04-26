@@ -1,4 +1,5 @@
-﻿using EvidenceServisnichZakazek.Repositories;
+﻿using EvidenceServisnichZakazek.Models;
+using EvidenceServisnichZakazek.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,8 +21,21 @@ public class OrdersApiController : Controller
     [HttpGet("all")]
     public async Task<IActionResult> GetAllOrders()
     {
-        var orders = _orderRepository.GetAllOrdersAsync();
+        var orders = await _orderRepository.GetAllOrdersAsync();
         
         return Ok(orders);
+    }
+    
+    [HttpPut("update")]
+    public async Task<IActionResult> UpdateOrder([FromBody] ServiceOrders updatedOrder)
+    {
+        if (updatedOrder == null || updatedOrder.Id == 0)
+        {
+            return BadRequest("Incorrect orders data");
+        }
+        
+        await _orderRepository.UpdateOrderAsync(updatedOrder);
+        
+        return Ok(new { message = "Order has been successfully updated!" });
     }
 }

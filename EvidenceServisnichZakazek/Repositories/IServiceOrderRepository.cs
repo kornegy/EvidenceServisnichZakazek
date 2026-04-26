@@ -11,4 +11,5 @@ public interface IServiceOrderRepository
     Task<IEnumerable<ServiceOrders>> GetUserOrdersFilteredAsync(int userId, string searchQuery, int? statusFilter, string dateFrom);
 
     Task<IEnumerable<ServiceOrders>> GetAllOrdersAsync();
+    Task UpdateOrderAsync(ServiceOrders order);
 }
