@@ -10,5 +10,6 @@ public interface IUserRepository
     Task<bool> UpdateUserProfileAsync(int userId, string newFullName);
     Task<Users?> GetUserByIdAsync(int id);
 
-    Task DeleteUserAsync();
+    Task DeleteUserAsync(int id);
+    Task<IEnumerable<UsersDTO>> GetAllUsersAsync();
 }

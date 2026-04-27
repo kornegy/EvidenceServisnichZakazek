@@ -16,4 +16,6 @@ public interface IServiceOrderRepository
     Task<bool> DeleteOrdersAdminAsync(int orderId);
     
     Task<StatisticsDTO.AppStatisticsDto> GetStatisticsAsync();
+    
+    Task<IEnumerable<TechnicianDTO>> GetAvailableTechniciansAsync(int currentOrderId);
 }

@@ -54,4 +54,17 @@ public class UserRepository : IUserRepository
 
         return await db.ExecuteAsync(updatesql, new { newFullName = newFullName, userId = userId }) > 0;
     }
+    
+    public async Task<IEnumerable<UsersDTO>> GetAllUsersAsync()
+    {
+        using IDbConnection db = new SqliteConnection(_connectionString);
+        return await db.QueryAsync<UsersDTO>("SELECT Id, FullName, Email, PhoneNumber FROM Users");
+    }
+
+    public async Task DeleteUserAsync(int id)
+    {
+        using IDbConnection db = new SqliteConnection(_connectionString);
+
+        await db.ExecuteAsync("DELETE FROM Users WHERE Id = @Id", new { Id = id });
+    }
 }

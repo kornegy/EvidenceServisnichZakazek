@@ -22,6 +22,20 @@ public class UsersApiController : Controller
         _userRepository = userRepository;
         _config = config;
     }
+    
+    [HttpGet]
+    public async Task<IActionResult> GetUsers()
+    {
+        var users = await _userRepository.GetAllUsersAsync();
+        return Ok(users);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteUser(int id)
+    {
+        await _userRepository.DeleteUserAsync(id);
+        return Ok();
+    }
 
     [HttpGet("check-email")]
     public async Task<IActionResult> CheckEmail(string email)

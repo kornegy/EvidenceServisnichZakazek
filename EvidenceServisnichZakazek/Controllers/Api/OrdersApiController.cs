@@ -58,4 +58,11 @@ public class OrdersApiController : Controller
         var stats = await _orderRepository.GetStatisticsAsync();
         return Ok(stats);
     }
+    
+    [HttpGet("technicians/available/{orderId}")]
+    public async Task<IActionResult> GetAvailableTechnicians(int orderId)
+    {
+        var techs = await _orderRepository.GetAvailableTechniciansAsync(orderId);
+        return Ok(techs);
+    }
 }

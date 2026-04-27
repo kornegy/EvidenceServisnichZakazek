@@ -105,7 +105,7 @@ public class ServiceOrderRepository : IServiceOrderRepository
     {
         using IDbConnection db = new SqliteConnection(_connectionString);
 
-        string sql = "Select * From ServiceOrders";
+        string sql = "Select * From ServiceOrders ORDER BY CreatedAt DESC";
         
         return await db.QueryAsync<ServiceOrders>(sql);
     }
@@ -186,8 +186,7 @@ public class ServiceOrderRepository : IServiceOrderRepository
     {
         using IDbConnection db = new SqliteConnection(_connectionString);
         var stats = new StatisticsDTO.AppStatisticsDto();
-
-        // 1. Считаем общее количество заказов
+        
         stats.TotalOrders = await db.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM ServiceOrders");
         
         string sqlStats = @"
@@ -201,5 +200,23 @@ public class ServiceOrderRepository : IServiceOrderRepository
         stats.StatusStats = statusData.ToList();
 
         return stats;
+    }
+    
+    public async Task<IEnumerable<TechnicianDTO>> GetAvailableTechniciansAsync(int currentOrderId)
+    {
+        using IDbConnection db = new SqliteConnection(_connectionString);
+        
+        string sql = @"
+        SELECT Id, Name 
+        FROM Technicians 
+        WHERE Id NOT IN (
+            SELECT TechniciansId 
+            FROM ServiceOrders 
+            WHERE TechniciansId IS NOT NULL 
+              AND CurrStatus IN (1, 2) 
+              AND Id != @OrderId
+        )";
+
+        return await db.QueryAsync<TechnicianDTO>(sql, new { OrderId = currentOrderId });
     }
 }
