@@ -113,7 +113,9 @@ public class ServiceOrderRepository : IServiceOrderRepository
     public async Task UpdateOrderAsync(ServiceOrders order)
     {
         using IDbConnection db = new SqliteConnection(_connectionString);
+        db.Open();
         using var transaction = db.BeginTransaction();
+        
         try
         {
             var currentData = await db.QueryFirstOrDefaultAsync<dynamic>(

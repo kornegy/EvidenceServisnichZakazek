@@ -64,7 +64,27 @@ public class UserRepository : IUserRepository
     public async Task DeleteUserAsync(int id)
     {
         using IDbConnection db = new SqliteConnection(_connectionString);
+        db.Open();
 
-        await db.ExecuteAsync("DELETE FROM Users WHERE Id = @Id ", new { Id = id });
+        using var transaction = db.BeginTransaction();
+        
+        try
+        {
+            await db.ExecuteAsync(@"DELETE FROM OrderHistories WHERE OrderId IN 
+                        (SELECT Id FROM ServiceOrders WHERE CustomerId = @Id)", new { Id = id }, transaction);
+            
+            await db.ExecuteAsync("DELETE FROM ServiceOrders WHERE CustomerId = @Id", new { Id = id }, transaction);
+            
+            await db.ExecuteAsync("DELETE FROM Technicians WHERE Id = @Id", new { Id = id }, transaction);
+            
+            await db.ExecuteAsync("DELETE FROM Users WHERE Id = @Id", new { Id = id }, transaction);
+
+            transaction.Commit();
+        }
+        catch (Exception ex)
+        {
+            transaction.Rollback();
+            throw new Exception($"Unable to delete User for a Reason: {ex.Message}");
+        }
     }
 }
