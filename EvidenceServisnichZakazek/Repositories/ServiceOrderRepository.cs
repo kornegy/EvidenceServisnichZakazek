@@ -113,58 +113,69 @@ public class ServiceOrderRepository : IServiceOrderRepository
     public async Task UpdateOrderAsync(ServiceOrders order)
     {
         using IDbConnection db = new SqliteConnection(_connectionString);
-        
-        var currentData = await db.QueryFirstOrDefaultAsync<dynamic>(
-            "SELECT CurrStatus, CreatedAt FROM ServiceOrders WHERE Id = @Id", 
-            new { Id = order.Id });
-
-        if (currentData == null) return;
-        
-        int oldStatus = Convert.ToInt32(currentData.CurrStatus);
-        
-        if (order.TechniciansId == 0)
+        using var transaction = db.BeginTransaction();
+        try
         {
-            order.TechniciansId = null;
-        }
-        
-        string sql = @"UPDATE ServiceOrders 
+            var currentData = await db.QueryFirstOrDefaultAsync<dynamic>(
+                "SELECT CurrStatus, CreatedAt FROM ServiceOrders WHERE Id = @Id",
+                new { Id = order.Id });
+
+            if (currentData == null) return;
+
+            int oldStatus = Convert.ToInt32(currentData.CurrStatus);
+
+            if (order.TechniciansId == 0)
+            {
+                order.TechniciansId = null;
+            }
+
+            string sql = @"UPDATE ServiceOrders 
                        SET PhoneType = @PhoneType, 
                            IssueDescription = @IssueDescription,
                            Price = @Price,
                            CurrStatus = @CurrStatus,
                            TechniciansId = @TechniciansId 
                        WHERE Id = @Id";
-        
-        await db.ExecuteAsync(sql, order);
-        
-        if (oldStatus != order.CurrStatus)
+
+            await db.ExecuteAsync(sql, order);
+
+            if (oldStatus != order.CurrStatus)
+            {
+                string lastChangeStr = await db.QueryFirstOrDefaultAsync<string>(
+                    "SELECT ChangedAt FROM OrderHistories WHERE OrderId = @OrderId ORDER BY Id DESC LIMIT 1",
+                    new { OrderId = order.Id });
+
+                DateTime lastChange;
+
+                if (!string.IsNullOrEmpty(lastChangeStr))
+                {
+                    lastChange = DateTime.Parse(lastChangeStr);
+                }
+                else
+                {
+                    lastChange = DateTime.Parse((string)currentData.CreatedAt);
+                }
+
+                int durationMinutes = (int)(DateTime.Now - lastChange).TotalMinutes;
+
+                string sqlHistory =
+                    @"INSERT INTO OrderHistories (OrderId, Status, ChangedAt, DurationMinutes) VALUES (@OrderId, @Status, @ChangedAt, @DurationMinutes)";
+
+                await db.ExecuteAsync(sqlHistory, new
+                {
+                    OrderId = order.Id,
+                    Status = order.CurrStatus,
+                    ChangedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    DurationMinutes = durationMinutes
+                }, transaction);
+            }
+
+            transaction.Commit();
+        }
+        catch (Exception) 
         {
-            string lastChangeStr = await db.QueryFirstOrDefaultAsync<string>(
-                "SELECT ChangedAt FROM OrderHistories WHERE OrderId = @OrderId ORDER BY Id DESC LIMIT 1", 
-                new { OrderId = order.Id });
-
-            DateTime lastChange;
-
-            if (!string.IsNullOrEmpty(lastChangeStr))
-            {
-                lastChange = DateTime.Parse(lastChangeStr);
-            }
-            else
-            {
-                lastChange = DateTime.Parse((string)currentData.CreatedAt);
-            }
-            
-            int durationMinutes = (int)(DateTime.Now - lastChange).TotalMinutes;
-            
-            string sqlHistory = @"INSERT INTO OrderHistories (OrderId, Status, ChangedAt, DurationMinutes) VALUES (@OrderId, @Status, @ChangedAt, @DurationMinutes)";
-
-            await db.ExecuteAsync(sqlHistory, new
-            {
-                OrderId = order.Id,
-                Status = order.CurrStatus,
-                ChangedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                DurationMinutes = durationMinutes
-            });
+            transaction.Rollback();
+            throw;
         }
     }
     

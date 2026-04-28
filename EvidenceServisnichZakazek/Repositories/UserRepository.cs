@@ -65,6 +65,6 @@ public class UserRepository : IUserRepository
     {
         using IDbConnection db = new SqliteConnection(_connectionString);
 
-        await db.ExecuteAsync("DELETE FROM Users WHERE Id = @Id", new { Id = id });
+        await db.ExecuteAsync("DELETE FROM Users WHERE Id = @Id ", new { Id = id });
     }
 }
